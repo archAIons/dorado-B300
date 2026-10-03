@@ -1,4 +1,4 @@
-# Dorado B300 — Archaions Fork
+# Dorado B300 - Archaions Fork
 
 **Advanced nanopore basecalling on NVIDIA Blackwell Ultra - accessible from your everyday laptop.**
 
