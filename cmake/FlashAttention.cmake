@@ -4,6 +4,14 @@
 # Manual builds can be used by specifying the install path via DORADO_FLASHATTENTION_PATH.
 #
 
+option(DORADO_DISABLE_FLASHATTENTION "Disable optional prebuilt FlashAttention" OFF)
+if(DORADO_DISABLE_FLASHATTENTION)
+    add_library(dorado_flashattention3 INTERFACE)
+    target_compile_definitions(dorado_flashattention3 INTERFACE DORADO_HAS_FLASHATTENTION3=0)
+    set(DORADO_HAS_FLASHATTENTION3 FALSE)
+    return()
+endif()
+
 set(FLASHATTENTION_VERSION "fa4-v4.0.0.beta10")
 
 

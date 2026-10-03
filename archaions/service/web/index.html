@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Basecall nanopore POD5 files on NVIDIA B300 with HAC and SUP models.">
+<title>B300 Basecalling · Archaions</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23152030'/%3E%3Cpath d='M7 24 16 7l9 17M11 18h10' fill='none' stroke='%235de2be' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./style.css?v=run-options-1"><script src="./catalog.js?v=run-options-1" defer></script><script src="./app.js?v=run-options-1" defer></script>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="/" aria-label="archAIons home">
+      <svg class="brand-mark" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M 4 34 L 20 6 L 36 34" stroke="#01324b" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+        <line x1="11" y1="22" x2="29" y2="22" stroke="#c8102e" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="20" cy="6" r="2.5" fill="#01324b"/>
+        <circle cx="11" cy="22" r="2" fill="#c8102e"/>
+        <circle cx="29" cy="22" r="2" fill="#c8102e"/>
+        <circle cx="4" cy="34" r="2" fill="#01324b"/>
+        <circle cx="36" cy="34" r="2" fill="#01324b"/>
+      </svg>
+      <span class="brand-name">arch<span class="ai">AI</span>ons</span>
+    </a><nav class="site-nav" aria-label="Main navigation"><a href="/workbench">Workbench</a><a href="/basecalling/" aria-current="page">Basecalling</a><a class="nav-benchmark" href="/benchmark">Benchmark</a><a class="account-link" href="/account">Account</a></nav></header>
+<main>
+<div class="heading"><div><div class="eyebrow">Nanopore basecalling.</div><h1>Raw signal. <span>Ready to discover.</span></h1><p>Upload POD5 files, or connect your sequencing folder.</p></div><div class="service"><span class="status-dot" id="statusDot"></span><span id="serviceStatus">Connect to begin</span><small id="gpuSummary">NVIDIA B300 · HAC / SUP</small></div></div>
+<section class="access" id="accessPanel" aria-label="Account access"><div><strong>Sign in to start basecalling</strong><p>Your files and results are private to your Archaions account.</p></div><a href="/login?next=/basecalling/">Sign in</a></section>
+<div id="message" class="message" role="status" hidden></div>
+<h2 class="workspace-title">Your reads. A clearer beginning.</h2><p class="workspace-intro">Basecall on NVIDIA B300 with HAC or SUP.</p>
+<div class="workspace">
+<section class="panel input-panel">
+<div class="section-top"><h2>Start a run</h2><span class="step">01</span></div>
+<div class="tabs" role="tablist" aria-label="Input mode"><button id="batchTab" role="tab" aria-selected="true" aria-controls="batchPanel">Upload files</button><button id="liveTab" role="tab" aria-selected="false" aria-controls="livePanel">Live folder</button></div>
+<div class="settings"><label>Run name<input id="runName" maxlength="128" spellcheck="false"></label><label>Sequencing kit<select id="kit"><option value="SQK-LSK114">SQK-LSK114 · DNA ligation</option></select></label><label>Basecalling model<select id="model"><option value="hac" selected>HAC · High accuracy</option><option value="sup">SUP · Super accuracy</option></select></label><label>Server GPU<select id="gpu" aria-describedby="gpuHint"><option value="B300">NVIDIA B300 · Preparing</option></select></label><p id="gpuHint" class="hint" role="status">HAC / SUP · FLO-PRO114M / SQK-LSK114 at 5 kHz</p></div>
+<fieldset class="run-options"><legend>Modified bases</legend><p class="hint">Optional. Choose one model per base; adenine and cytosine calls can run together. Modification probabilities are retained in BAM.</p><div id="modifications" class="modifications"></div></fieldset>
+<fieldset class="run-options"><legend>Demultiplexing &amp; trimming</legend>
+<label class="check"><input type="checkbox" id="demultiplex"> Split results by barcode</label>
+<p class="hint" id="demuxHint">Choose a barcoding kit to enable demultiplexing.</p>
+<label class="check"><input type="checkbox" id="barcodeBothEnds"> Require barcode at both ends</label>
+<label class="check"><input type="checkbox" id="trim" checked> Trim adapters, primers and barcodes where supported</label>
+</fieldset>
+<fieldset class="run-options"><legend>Quality control</legend>
+<label class="check"><input type="checkbox" id="qc" checked> Generate QC report</label>
+<div class="settings"><label>Minimum read Q-score<input id="minQscore" type="number" min="0" max="50" step="0.1" value="0"></label><label>Minimum read length (bases)<input id="minLength" type="number" min="0" max="10000000" step="1" value="0"></label></div>
+<p class="hint">Zero keeps all reads. Filters apply to BAM, FASTQ and barcode outputs. The QC report summarizes reads before filtering and reports pass/fail counts.</p>
+</fieldset>
+<div id="batchPanel" role="tabpanel" aria-labelledby="batchTab">
+<label id="dropzone" class="dropzone" for="files"><span class="file-icon" aria-hidden="true">↑</span><strong>Choose POD5 files</strong><span>or drop them here</span><small>Multiple files · up to 2 GiB each</small><input class="sr-only" id="files" type="file" accept=".pod5" multiple></label>
+<div id="selection" class="selection">No files selected</div>
+<button class="primary full" id="uploadButton" disabled>Upload and basecall</button>
+</div>
+<div id="livePanel" role="tabpanel" aria-labelledby="liveTab" hidden>
+<div class="live-intro"><span class="file-icon" aria-hidden="true">↻</span><h3>Basecall as you sequence</h3><p>Choose the folder where MinKNOW saves POD5 files. New files are uploaded after they stop changing for 30 seconds.</p></div>
+<button class="primary full" id="watchButton" disabled>Connect sequencing folder</button><p class="hint" id="watchSupport">Use desktop Chrome or Edge. Keep this tab open and your computer awake.</p>
+</div>
+<div id="transfer" class="transfer" hidden><div><span id="transferLabel"></span><button id="pauseButton" class="text-button">Stop uploads</button></div><progress id="progress" value="0" max="100"></progress><small id="transferDetail"></small></div>
+<div class="input-note"><strong>Your computer records. The server basecalls.</strong><p>In MinKNOW, save POD5 output and switch off local basecalling if you want the server to handle it.</p></div>
+</section>
+<section class="panel results-panel"><div class="section-top"><h2>Run activity</h2><button class="text-button" id="refreshButton">Refresh</button></div><div class="metrics"><div><strong id="filesCount">0</strong><span>Files</span></div><div><strong id="completeCount">0</strong><span>Complete</span></div><div><strong id="readsCount">—</strong><span>Basecalled reads</span></div></div>
+<div id="emptyState" class="empty"><div class="empty-symbol" aria-hidden="true">≋</div><h3>Your reads will appear here</h3><p>Follow each file from upload to basecalling, then download BAM and FASTQ results.</p></div><div id="jobList" class="job-list" aria-live="polite"></div>
+</section>
+</div>
+<footer class="page-footer"><p>Experimental B300 basecalling. First results may take a few minutes while the GPU and model load. Live results arrive in file batches.</p><nav class="footer-links" aria-label="Footer"><a href="/workbench">Workbench</a><a href="/account">Account</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="mailto:contact@archaions.com">Contact</a><span>© 2026 archAIons</span></nav></footer>
+</main>
+</body></html>

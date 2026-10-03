@@ -33,3 +33,14 @@ regression_test/output/tests/data/aligner_test/*.fai
 # If running regression tests, the regression_test_data project is downloaded into
 # the dorado folder. We don't want it to be accidentally committed.
 regression_test_data
+
+# Archaions runtime data and local credentials
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+archaions/data/
+archaions/build_tools/*-results/
+archaions/build_tools/*.log
+archaions/service/options-*.png

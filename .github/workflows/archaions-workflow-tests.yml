@@ -1,0 +1,37 @@
+name: Archaions workflow tests
+
+on:
+  push:
+    paths:
+      - 'archaions/**'
+      - '.github/workflows/archaions-workflow-tests.yml'
+  pull_request:
+    paths:
+      - 'archaions/**'
+      - '.github/workflows/archaions-workflow-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  workflow-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: archaions/requirements.txt
+      - run: python -m pip install -r archaions/requirements.txt
+      - name: Account isolation, run settings, filtering and migration
+        working-directory: archaions/service
+        run: python -m unittest -v test_public test_options test_migration
+      - name: Python syntax
+        run: python -m compileall -q archaions
+      - name: Browser JavaScript syntax
+        run: |
+          node --check archaions/service/web/app.js
+          node --check archaions/service/web/catalog.js
+          node --check archaions/service/web/hash-worker.js

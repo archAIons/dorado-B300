@@ -1,0 +1,19 @@
+{
+  "historical_h100_compute_seconds": 55.67,
+  "runs": [
+    {
+      "compute_seconds": 24.78,
+      "remote_wall_seconds": 123.015,
+      "reads": 1003,
+      "sequence_quality_digest": "40b6d4c6b0b2e887f59c29e2cd6499654ed7e22c5a7bfd5985d1859c80ca3fc9",
+      "identical_to_h100": true
+    },
+    {
+      "compute_seconds": 18.87,
+      "remote_wall_seconds": 23.053,
+      "reads": 1003,
+      "sequence_quality_digest": "40b6d4c6b0b2e887f59c29e2cd6499654ed7e22c5a7bfd5985d1859c80ca3fc9",
+      "identical_to_h100": true
+    }
+  ]
+}

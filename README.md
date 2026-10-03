@@ -1,212 +1,90 @@
-# Dorado
+# Dorado B300 — Archaions Fork
 
-Dorado is a high-performance, easy-to-use, open source analysis engine for Oxford Nanopore reads.
+**Advanced nanopore basecalling on NVIDIA Blackwell Ultra — accessible from your everyday laptop.**
 
-Detailed information about Dorado and its features is available in the [Dorado Documentation](https://software-docs.nanoporetech.com/dorado/latest/).
+This Archaions fork builds on [Oxford Nanopore Dorado](https://github.com/nanoporetech/dorado). Dorado provides the underlying basecalling engine; the Archaions additions focus on experimental B300 compatibility, GPU configuration, remote processing, and the hosted user workflow.
 
-## Features
+Archaions brings experimental NVIDIA B300 GPU acceleration to nanopore basecalling, connecting portable sequencing with powerful remote computing. Generate POD5 files locally, then use server-side HAC or SUP basecalling, DNA and RNA modification detection, demultiplexing, and quality control.
 
-* One executable with sensible defaults, automatic hardware detection and configuration.
-* Runs on Apple silicon (M series) and Nvidia GPUs including multi-GPU with linear scaling (see [Platforms](#platforms)).
-* [Modified basecalling](https://software-docs.nanoporetech.com/dorado/latest/basecaller/mods/).
-* [Duplex basecalling](https://software-docs.nanoporetech.com/dorado/latest/basecaller/duplex/) (watch the following video for an introduction to [Duplex](https://youtu.be/8DVMG7FEBys)).
-* Simplex [barcode classification](https://software-docs.nanoporetech.com/dorado/latest/barcoding/barcoding/).
-* Support for aligned read output in SAM/BAM.
-* Initial support for [poly(A) tail estimation](https://software-docs.nanoporetech.com/dorado/latest/basecaller/polya_estimation/).
-* Support for [single-read error correction](https://software-docs.nanoporetech.com/dorado/latest/assembly/correct/).
-* [POD5](https://github.com/nanoporetech/pod5-file-format) support for highest basecalling performance ([documentation](https://software-docs.nanoporetech.com/pod5/latest/)).
-* Based on libtorch, the C++ API for pytorch.
-* Multiple custom optimisations in CUDA and Metal for maximising inference performance.
+**Access the project through this repository, or use the hosted service on the Archaions website: `archaions.com`.**
 
-If you encounter any problems building or running Dorado, please [report an issue](https://github.com/nanoporetech/dorado/issues).
+## Bringing Blackwell Ultra to nanopore sequencing
 
-## Installation
+Dorado's published platform guidance emphasizes A100 and H100 optimization. Archaions extends this workflow to NVIDIA B300, a Blackwell Ultra accelerator from a newer generation than H100 and part of NVIDIA's advanced data-center computing platform. The innovation combines experimental B300 compatibility work, model-specific configuration, and a browser-accessible sequencing workflow. [Dorado platform guidance](https://github.com/nanoporetech/dorado#platforms), [NVIDIA Blackwell Ultra](https://nvidianews.nvidia.com/news/nvidia-blackwell-ultra-ai-factory-platform-paves-way-for-age-of-ai-reasoning).
 
-First, download the relevant installer for your platform:
+The implementation pairs pinned basecalling models with checksummed executable builds, preserves modification annotations, and records processing settings in downloadable provenance files. B300 support remains experimental and is specific to the tested configurations.
 
- - [dorado-2.1.2-linux-x64](https://cdn.oxfordnanoportal.com/software/analysis/dorado-2.1.2-linux-x64.tar.gz)
- - [dorado-2.1.2-linux-arm64-cuda12 - Orin only](https://cdn.oxfordnanoportal.com/software/analysis/dorado-2.1.2-linux-arm64.tar.gz)
- - [dorado-2.1.2-linux-arm64-cuda13 - Jetson Thor / DGX Spark](https://cdn.oxfordnanoportal.com/software/analysis/dorado-2.1.2-linux-arm64-cuda-13.0.tar.gz)
- - [dorado-2.1.2-osx-arm64](https://cdn.oxfordnanoportal.com/software/analysis/dorado-2.1.2-osx-arm64.zip)
- - [dorado-2.1.2-win64](https://cdn.oxfordnanoportal.com/software/analysis/dorado-2.1.2-win64.zip)
+## MinION sequencing without a local basecalling GPU
 
-Once the relevant `.tar.gz` or `.zip` archive is downloaded, extract the archive to your desired location.
+**MinION users can capture POD5 files on an affordable laptop without a dedicated basecalling GPU, then upload those files to Archaions for remote processing.**
 
-You can then call Dorado using the full path, for example:
+The laptop must still meet the data-acquisition requirements for the particular MinION device and MinKNOW version, including CPU, memory, USB connectivity, and storage. Oxford Nanopore explicitly permits MinION Mk1D data acquisition using its minimum specifications excluding the GPU when basecalling is performed elsewhere. [MinION data-acquisition requirements](https://nanoporetech.com/document/requirements/minion-mk1d-it-reqs).
 
-```bash
-/path/to/dorado-x.y.z-linux-x64/bin/dorado basecaller hac pod5s/ > calls.bam
-```
+1. Connect your MinION to a compatible laptop and start sequencing in MinKNOW.
+2. Enable POD5 output and switch off local basecalling.
+3. Open the Archaions website and sign in.
+4. Select the sequencing kit, HAC or SUP, and any supported modification, demultiplexing, or QC options.
+5. Upload completed POD5 files, or connect a sequencing folder in a supported desktop browser.
+6. Download the resulting BAM, compressed FASTQ, run details, and requested QC or barcode outputs.
 
-Or you can add the bin path to your `$PATH` environment variable, and run with the `dorado` command instead, for example:
+**Your laptop records the signal. The remote B300 server performs the basecalling.**
 
-```bash
-dorado basecaller hac pod5s/ > calls.bam
-```
+Live-folder mode uploads completed files in batches. Keep the browser open and the computer awake. Internet upload speed and GPU startup time contribute to the time before results arrive.
 
-Please visit the [dorado documentation](https://software-docs.nanoporetech.com/dorado/latest/) for more information on getting started.
+## Experimental result: approximately 58% less processing time
 
-See [DEV.md](DEV.md) for details about building Dorado for development.
+An experimental B300 HAC workflow completed the benchmark file in **23.208 seconds**, compared with a **55.67-second historical H100 workflow measurement** — a **58.3% reduction in measured processing time**, rounded to **58%**.
 
-## Platforms
+| Measurement | Result |
+| --- | --- |
+| Historical H100 workflow | 55.67 seconds |
+| Experimental B300 workflow | 23.208 seconds |
+| Processing-time reduction | 58.3% |
+| Basecalling model | DNA HAC v6.0.0 |
+| B300 batch size in this experiment | 8,192 chunks |
+| Output | 1,003 reads; 16,846,352 bases |
+| Sequence and quality comparison | Matched the recorded H100 reference digest |
 
-Dorado is heavily-optimised for Nvidia A100 and H100 GPUs and will deliver maximal performance on systems with these GPUs.
+Calculation: `(55.67 − 23.208) / 55.67 × 100 = 58.3%`.
 
-Dorado has been tested extensively and supported on the following systems:
+This is a single-file, historical workflow comparison, including software configuration and processing overhead. Upload, download, queueing, and GPU allocation are excluded. It does not isolate GPU inference speed or establish a universal B300-over-H100 speedup. The subsequently deployed HAC profile uses a batch size of 4,096; the 58% figure refers specifically to the experiment above. See `benchmark-summary.json` for the recorded configuration and source-report identifiers.
 
-| Platform | GPU/CPU | Minimum Software Requirements |
-| --- |---------|--------------|
-| Linux x86_64  | (G)V100, A100, H100 | CUDA Driver ≥525.105 |
-| Linux arm64 | Jetson Orin, Jetson Thor, DGX Spark* | Linux for Tegra ≥36.4.3 (JetPack ≥6.2) |
-| Windows x86_64 | (G)V100, A100, H100 | CUDA Driver ≥529.19 |
-| Apple | Apple Silicon (M series) | macOS ≥14 |
+## Archaions hosted workflow capabilities
 
-**DGX Spark supports all Dorado commands **except** Dorado `correct`. Support for Dorado `correct` will be added in a future release.*
+| Capability | Available options |
+| --- | --- |
+| Basecalling mode | HAC — high accuracy; SUP — super accuracy |
+| DNA adenine modification | 6mA in all contexts |
+| DNA cytosine modifications | 4mC + 5mC in all contexts; 5mC + 5hmC in CG contexts; or 5mC + 5hmC in all contexts |
+| RNA004 modifications | Mode-specific RNA models, including m6A in DRACH contexts, inosine/m6A combinations, cytosine modifications, and pseudouridine combinations |
+| Demultiplexing | Supported native and rapid barcode kits; per-barcode BAM files in a ZIP, including unclassified reads |
+| Barcode stringency | Optional matching at both ends for supported native barcode kits |
+| Trimming | Configurable adapter, primer, and barcode trimming where supported |
+| Quality filtering | Minimum read Q-score and minimum read length |
+| QC report | Read/base counts, pass/fail counts, read N50, mean read length and quality, quality histogram, and barcode counts |
+| Input | POD5 uploads or live-folder monitoring |
+| Downloads | BAM, compressed FASTQ, provenance JSON, optional QC JSON, and optional barcode BAM ZIP |
 
-Linux x64 or Windows systems not listed above but which have Nvidia GPUs with ≥8 GB VRAM and architecture from Pascal onwards (except P100/GP100) have not been widely tested but are expected to work. When basecalling with Apple devices, we recommend systems with ≥16 GB of unified memory.
+DNA adenine calling can run alongside one cytosine modification model. Kit and mode selection determine the available models; incompatible combinations are rejected. Modification annotations are retained in BAM output.
 
-If you encounter problems with running on your system, please [report an issue](https://github.com/nanoporetech/dorado/issues).
+Supported kit selections currently include **SQK-LSK114, SQK-LSK114-XL, SQK-RAD114, SQK-NBD114-24/96, SQK-RBK114-24/96, SQK-RNA004, and SQK-RNA004-XL**. Input metadata must match the selected kit and an accepted flow-cell/sample-rate combination. The current workflow covers supported Kit 14 DNA at 5 kHz and direct RNA004 at 4 kHz.
 
-AWS Benchmarks on Nvidia GPUs for Dorado 0.3.0 are available [here](https://aws.amazon.com/blogs/hpc/benchmarking-the-oxford-nanopore-technologies-basecallers-on-aws/). Please note: Dorado's basecalling speed is continuously improving, so these benchmarks may not reflect performance with the latest release.
+## Website and repository access
 
-## Performance tips
+**For sequencing users:** visit `archaions.com`, open Basecalling, and sign in. The hosted service provides the configured B300 backend; a local CUDA installation or GPU is unnecessary. The current browser upload limit is 2 GiB per POD5 file. Live-folder access requires desktop Chrome or Edge.
 
-1. Dorado will automatically detect your GPU's free memory and select an appropriate batch size.
-2. Dorado will automatically run in multi-GPU `cuda:all` mode. If you have a heterogeneous collection of GPUs, select the faster GPUs using the `--device` flag (e.g., `--device cuda:0,2`). Not doing this will have a detrimental impact on performance.
-3. On Windows systems with Nvidia GPUs, open Nvidia Control Panel, navigate into “Manage 3D settings” and then set “CUDA - Sysmem Fallback Policy” to “Prefer No Sysmem Fallback”.  This will provide a significant performance improvement.
+**For developers and research teams:** this fork contains the B300 engine changes and Archaions integration. See the [integration guide](archaions/README.md) for source layout, local tests, deployment prerequisites, and build-history limitations. The capabilities above describe the deployed Archaions service; independent deployments require compatible build and model assets. Running the B300 backend requires GPU infrastructure, compatible executable builds, model assets, and service configuration. Cloning source code alone does not provision GPU access. The prototype token-based connector and the hosted account-based service use different authentication methods.
 
-## Running
+## Validation scope
 
-The following are helpful commands for getting started with Dorado.
-To see all options and their defaults, run `dorado -h` and `dorado <subcommand> -h`.
+Functional testing covered 11 GPU cases: six DNA modification combinations across HAC/SUP, four RNA modification combinations, and barcode demultiplexing. Additional checks covered modification-tag preservation, QC counts, barcode read conservation, account isolation, desktop/mobile controls, and an authenticated upload with result downloads.
 
-### Simplex basecalling
+These checks establish operation on the tested fixtures. They do not establish modification-detection accuracy across biological samples. The RNA functional test used an Oxford Nanopore RNA004 signal fixture with test-only kit/flow-cell metadata corrected to match the explicit RNA004 model used by the upstream test. User POD5 metadata is validated and is never rewritten by the service.
 
-To run Dorado basecalling, using the automatically downloaded `hac` model on a directory of POD5 files or a single POD5 file.
+## Upstream Dorado
 
-```bash
-dorado basecaller hac pod5s/ > calls.bam
-```
+The original project documentation is preserved in [README.upstream.md](README.upstream.md). Upstream installation instructions describe official Dorado releases; they do not install the custom Archaions B300 build.
 
-To basecall a single file, simply replace the directory `pod5s/` with a path to your data file.
+Dorado supplies the basecalling and modification models interface, barcode classification, and core processing engine. Archaions supplies the experimental B300 integration and remote workflow described above. Preserve the upstream [LICENCE.txt](LICENCE.txt), copyright notices, and contributor history when maintaining this fork.
 
-Click here for more details on [simplex basecalling](https://software-docs.nanoporetech.com/dorado/latest/basecaller/simplex/) including how to use the
-`--resume-from` feature.
-
-### DNA adapter and primer trimming
-
-Dorado can detect and remove any adapter and/or primer sequences from the beginning and end of DNA reads. Note that if you intend to demultiplex the reads at some later time, trimming primers will likely result in some portions of the flanking regions of the barcodes being removed, which could prevent demultiplexing from working properly. For details see the dorado documentation on [read trimming](https://software-docs.nanoporetech.com/dorado/latest/basecaller/read_trimming/).
-
-### Modified basecalling
-
-Beyond the traditional A, T, C, and G basecalling, Dorado can also detect modified bases such as 5-methylcytosine (5mC), 5-hydroxymethylcytosine (5hmC), and N<sup>6</sup>-methyladenosine (6mA). These modified bases play crucial roles in epigenetic regulation.
-
-For full details please read the documentation on [modified basecalling](https://software-docs.nanoporetech.com/dorado/latest/basecaller/mods/#introduction).
-
-To call modifications, extend the [models argument](https://software-docs.nanoporetech.com/dorado/latest/models/selection/) with a comma-separated list of modifications:
-
-```
-dorado basecaller hac,5mCG_5hmCG,6mA pod5s/ > calls.bam
-```
-
-In the example above, basecalling is performed with the detection of both 5mC/5hmC in CG contexts and 6mA in all contexts. See here for details on [modified basecalling context](https://software-docs.nanoporetech.com/dorado/latest/basecaller/mods/#modification-context).
-
-Refer to the [models list](https://software-docs.nanoporetech.com/dorado/latest/models/list/) table's _Compatible Modifications_ column to see available modifications.
-
-Modified basecalling is also supported with [Duplex basecalling](https://software-docs.nanoporetech.com/dorado/latest/basecaller/duplex/#hemi-methylation-duplex-basecalling), where it produces hemi-methylation calls.
-
-### Duplex
-
-To run Duplex basecalling, run the command:
-
-```
-dorado duplex sup pod5s/ > duplex.bam
-```
-
-For more details please head to the [Dorado `duplex` basecalling documentation](https://software-docs.nanoporetech.com/dorado/latest/basecaller/duplex/).
-
-### Alignment
-
-Dorado supports aligning existing basecalls or producing aligned output directly, internally using [minimap2](https://github.com/lh3/minimap2).
-
-To align existing basecalls, run:
-
-```bash
-dorado aligner <index> <reads>  > aligned.bam
-```
-
-where `index` is a reference to align to in (FASTQ/FASTA/.mmi) format and `reads` is a folder or file in any HTS format.
-
-To basecall with alignment with duplex or simplex, run with the `--reference` option:
-
-```bash
-dorado basecaller <model> <reads> --reference <index> > calls.bam
-```
-
-For more details please check out the [Dorado `aligner` documentation](https://software-docs.nanoporetech.com/dorado/latest/basecaller/alignment/).
-
-### Sequencing Summary
-
-The Dorado `summary` command outputs a tab-separated file with read level sequencing information from the BAM file generated during basecalling. To create a summary, run:
-
-```bash
-dorado summary <bam> > summary.tsv
-```
-
-### Barcode Classification
-
-Dorado supports barcode classification for existing basecalls as well as producing classified basecalls directly. Further details can be found at the [Dorado `barcoding` documentation](https://software-docs.nanoporetech.com/dorado/latest/barcoding/barcoding/).
-
-### Poly(A) tail estimation
-
-Dorado has initial support for estimating poly(A) tail lengths for cDNA (PCS and PCB kits) and RNA, and can be configured for use with custom primer sequences, interrupted tails, and plasmids. Note that Oxford Nanopore cDNA reads are sequenced in two different orientations and Dorado poly(A) tail length estimation handles both (A and T homopolymers). This feature can be enabled by passing `--estimate-poly-a` to the `basecaller` command. For more details check out the [dorado poly(A) estimation documentation](https://software-docs.nanoporetech.com/dorado/latest/basecaller/polya_estimation/).
-
-### Read Error Correction
-
-Dorado supports single-read error correction with the integration of the [HERRO](https://github.com/lbcb-sci/herro) algorithm. HERRO uses all-vs-all alignment followed by haplotype-aware correction using a deep learning model to achieve higher single-read accuracies. The corrected reads are primarily useful for generating _de novo_ assemblies of diploid organisms.
-
-Dorado `correct` is available on all supported platforms *except* DGX Spark. Support for Dorado `correct` on DGX Spark will be added in a future release.
-
-To correct reads, run:
-
-```bash
-dorado correct reads.fastq > corrected_reads.fasta
-```
-
-Checkout the [Dorado `correct` documentation](https://software-docs.nanoporetech.com/dorado/latest/assembly/correct/) for all the details.
-
-### Polishing
-
-Dorado `polish` is a high accuracy assembly polishing tool which outperforms similar tools for most ONT-based assemblies.
-
-It takes as input a draft assembly produced by a tool such as [Hifiasm](https://github.com/chhylp123/hifiasm) or [Flye](https://github.com/mikolmogorov/Flye) and aligned reads and outputs an updated version of the assembly.
-
-Additionally, Dorado `polish` can output a VCF file containing records for all variants discovered during polishing, or a gVCF file containing records for all locations in the input draft sequences.
-
-Note that Dorado `polish` is a **haploid** polishing tool and does _not_ implement any sort of phasing internally. It will take input alignment data _as is_ and run it through the polishing model to produce the consensus sequences. For more information, please take a look at [this section](https://software-docs.nanoporetech.com/dorado/latest/assembly/polish/#polishing-diploidpolyploid-assemblies) of Dorado Docs.
-
-For more information on how to get started, head to the [Dorado `polish` documentation](https://software-docs.nanoporetech.com/dorado/latest/assembly/polish/).
-
-## Available basecalling models
-
-Click here for a list of [all available Dorado models](https://software-docs.nanoporetech.com/dorado/latest/models/list/).
-
-Dorado can often download [models automatically](https://software-docs.nanoporetech.com/dorado/latest/models/selection/#automatic-model-download) based on the [model argument](https://software-docs.nanoporetech.com/dorado/latest/models/selection/) used.
-
-To download all models instead of using the automatic download, run:
-
-```bash
-dorado download --model all
-```
-
-Click here for more information on [Dorado `download`](https://software-docs.nanoporetech.com/dorado/latest/models/downloader/) and [Dorado model selection](https://software-docs.nanoporetech.com/dorado/latest/models/selection/).
-
-## Troubleshooting Guide
-
-Click here for the [Dorado troubleshooting documentation](https://software-docs.nanoporetech.com/dorado/latest/troubleshooting/troubleshooting/).
-
-## Licence and Copyright
-
-(c) 2025 Oxford Nanopore Technologies PLC.
-
-Dorado is distributed under the terms of the Oxford Nanopore Technologies PLC.  Public License, v. 1.0.  If a copy of the License was not distributed with this file, You can obtain one at https://nanoporetech.com
+Built around Oxford Nanopore Dorado and POD5, with experimental Archaions B300 integration.

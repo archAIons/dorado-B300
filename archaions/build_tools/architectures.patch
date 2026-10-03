@@ -1,0 +1,19 @@
+diff --git a/cmake/Torch.cmake b/cmake/Torch.cmake
+index fd46808..f3e96de 100644
+--- a/cmake/Torch.cmake
++++ b/cmake/Torch.cmake
+@@ -32,9 +32,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR WIN32)
+     set(CUDNN_LIBRARY_PATH ${DORADO_3RD_PARTY_SOURCE}/fake_cudnn/libcudnn.a)
+     set(CUDNN_INCLUDE_PATH ${DORADO_3RD_PARTY_SOURCE}/fake_cudnn)
+ 
+-    set(CMAKE_CUDA_ARCHITECTURES 75 80 86 87 90)
+-    if(CUDAToolkit_VERSION VERSION_LESS 13.0)
+-      list(APPEND CMAKE_CUDA_ARCHITECTURES 62 70 72)
++    if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
++      set(CMAKE_CUDA_ARCHITECTURES 75 80 86 87 90)
++      if(CUDAToolkit_VERSION VERSION_LESS 13.0)
++        list(APPEND CMAKE_CUDA_ARCHITECTURES 62 70 72)
++      endif()
+     endif()
+ 
+     if (CUDAToolkit_VERSION VERSION_LESS 12.0)

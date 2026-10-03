@@ -1,0 +1,19 @@
+--- a/dorado/basecall/CudaCaller.cpp
++++ b/dorado/basecall/CudaCaller.cpp
+@@ -515,7 +515,15 @@
+ 
+ void CudaCaller::determine_batch_dims(const BasecallerCreationParams &params,
+                                       bool variable_chunk_sizes) {
+-    const int requested_batch_size = m_config.basecaller.batch_size();
++    int requested_batch_size = m_config.basecaller.batch_size();
++    const auto* device_props = at::cuda::getDeviceProperties(m_options.device().index());
++    if (requested_batch_size == 0 && m_pipeline_type == PipelineType::simplex &&
++        device_props->major == 10 && device_props->minor == 3 &&
++        std::string(device_props->name).find("B300") != std::string::npos &&
++        m_config.model_path.filename() == "dna_r10.4.1_e8.2_400bps_hac@v6.0.0") {
++        requested_batch_size = 4096;
++        spdlog::info("Using validated B300 HAC batch profile: {} chunks", requested_batch_size);
++    }
+     auto [batch_dims, max_batch_sizes] =
+             calculate_batch_sizes(m_options.device(), params.memory_limit_fraction, m_config,
+                                   m_pipeline_type, requested_batch_size, variable_chunk_sizes);

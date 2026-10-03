@@ -515,7 +515,23 @@ CudaCaller::BatchDimsAndMaxSizes CudaCaller::calculate_batch_sizes(
 
 void CudaCaller::determine_batch_dims(const BasecallerCreationParams &params,
                                       bool variable_chunk_sizes) {
-    const int requested_batch_size = m_config.basecaller.batch_size();
+    int requested_batch_size = m_config.basecaller.batch_size();
+    const auto* device_props = at::cuda::getDeviceProperties(m_options.device().index());
+    if (requested_batch_size == 0 && m_pipeline_type == PipelineType::simplex &&
+        device_props->major == 10 && device_props->minor == 3 &&
+        std::string(device_props->name).find("B300") != std::string::npos) {
+        const auto model_name = m_config.model_path.filename();
+        if (model_name == "dna_r10.4.1_e8.2_400bps_hac@v6.0.0") {
+            requested_batch_size = 4096;
+            spdlog::info("Using validated B300 HAC batch profile: {} chunks", requested_batch_size);
+        } else if (model_name == "dna_r10.4.1_e8.2_400bps_fast@v5.2.0") {
+            requested_batch_size = 4096;
+            spdlog::info("Using validated B300 FAST batch profile: {} chunks", requested_batch_size);
+        } else if (model_name == "dna_r10.4.1_e8.2_400bps_sup@v5.2.0") {
+            requested_batch_size = 512;
+            spdlog::info("Using validated B300 SUP batch profile: {} chunks", requested_batch_size);
+        }
+    }
     auto [batch_dims, max_batch_sizes] =
             calculate_batch_sizes(m_options.device(), params.memory_limit_fraction, m_config,
                                   m_pipeline_type, requested_batch_size, variable_chunk_sizes);
