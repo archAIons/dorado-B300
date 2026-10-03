@@ -1,6 +1,6 @@
 # Dorado B300 — Archaions Fork
 
-**Advanced nanopore basecalling on NVIDIA Blackwell Ultra — accessible from your everyday laptop.**
+**Advanced nanopore basecalling on NVIDIA Blackwell Ultra - accessible from your everyday laptop.**
 
 This Archaions fork builds on [Oxford Nanopore Dorado](https://github.com/nanoporetech/dorado). Dorado provides the underlying basecalling engine; the Archaions additions focus on experimental B300 compatibility, GPU configuration, remote processing, and the hosted user workflow.
 
