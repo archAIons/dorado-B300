@@ -1,90 +1,90 @@
 [
-  {
-    "case": "sup-4mC_5mC",
-    "ok": true,
-    "reads": 2,
-    "total_reads": 2,
-    "filtered_reads": 0,
-    "compute_seconds": 27.85
-  },
-  {
-    "case": "sup-5mCG_5hmCG",
-    "ok": true,
-    "reads": 2,
-    "total_reads": 2,
-    "filtered_reads": 0,
-    "compute_seconds": 7.99
-  },
-  {
-    "case": "sup-5mC_5hmC",
-    "ok": true,
-    "reads": 2,
-    "total_reads": 2,
-    "filtered_reads": 0,
-    "compute_seconds": 8.07
-  },
-  {
-    "case": "barcode",
-    "ok": true,
-    "reads": 7,
-    "total_reads": 7,
-    "filtered_reads": 0,
-    "compute_seconds": 10.2
-  },
-  {
-    "case": "hac-4mC_5mC",
-    "ok": true,
-    "reads": 2,
-    "total_reads": 2,
-    "filtered_reads": 0,
-    "compute_seconds": 20.85
-  },
-  {
-    "case": "hac-5mCG_5hmCG",
-    "ok": true,
-    "reads": 2,
-    "total_reads": 2,
-    "filtered_reads": 0,
-    "compute_seconds": 10.9
-  },
-  {
-    "case": "hac-5mC_5hmC",
-    "ok": true,
-    "reads": 2,
-    "total_reads": 2,
-    "filtered_reads": 0,
-    "compute_seconds": 10.3
-  },
-  {
-    "case": "hac-rna-all",
-    "ok": true,
-    "reads": 1,
-    "total_reads": 1,
-    "filtered_reads": 0,
-    "compute_seconds": 26.53
-  },
-  {
-    "case": "hac-rna-drach",
-    "ok": true,
-    "reads": 1,
-    "total_reads": 1,
-    "filtered_reads": 0,
-    "compute_seconds": 4.66
-  },
-  {
-    "case": "sup-rna-all",
-    "ok": true,
-    "reads": 1,
-    "total_reads": 1,
-    "filtered_reads": 0,
-    "compute_seconds": 58.35
-  },
-  {
-    "case": "sup-rna-drach",
-    "ok": true,
-    "reads": 1,
-    "total_reads": 1,
-    "filtered_reads": 0,
-    "compute_seconds": 3.5
-  }
+    {
+        "case": "sup-4mC_5mC",
+        "ok": true,
+        "reads": 2,
+        "total_reads": 2,
+        "filtered_reads": 0,
+        "compute_seconds": 27.85
+    },
+    {
+        "case": "sup-5mCG_5hmCG",
+        "ok": true,
+        "reads": 2,
+        "total_reads": 2,
+        "filtered_reads": 0,
+        "compute_seconds": 7.99
+    },
+    {
+        "case": "sup-5mC_5hmC",
+        "ok": true,
+        "reads": 2,
+        "total_reads": 2,
+        "filtered_reads": 0,
+        "compute_seconds": 8.07
+    },
+    {
+        "case": "barcode",
+        "ok": true,
+        "reads": 7,
+        "total_reads": 7,
+        "filtered_reads": 0,
+        "compute_seconds": 10.2
+    },
+    {
+        "case": "hac-4mC_5mC",
+        "ok": true,
+        "reads": 2,
+        "total_reads": 2,
+        "filtered_reads": 0,
+        "compute_seconds": 20.85
+    },
+    {
+        "case": "hac-5mCG_5hmCG",
+        "ok": true,
+        "reads": 2,
+        "total_reads": 2,
+        "filtered_reads": 0,
+        "compute_seconds": 10.9
+    },
+    {
+        "case": "hac-5mC_5hmC",
+        "ok": true,
+        "reads": 2,
+        "total_reads": 2,
+        "filtered_reads": 0,
+        "compute_seconds": 10.3
+    },
+    {
+        "case": "hac-rna-all",
+        "ok": true,
+        "reads": 1,
+        "total_reads": 1,
+        "filtered_reads": 0,
+        "compute_seconds": 26.53
+    },
+    {
+        "case": "hac-rna-drach",
+        "ok": true,
+        "reads": 1,
+        "total_reads": 1,
+        "filtered_reads": 0,
+        "compute_seconds": 4.66
+    },
+    {
+        "case": "sup-rna-all",
+        "ok": true,
+        "reads": 1,
+        "total_reads": 1,
+        "filtered_reads": 0,
+        "compute_seconds": 58.35
+    },
+    {
+        "case": "sup-rna-drach",
+        "ok": true,
+        "reads": 1,
+        "total_reads": 1,
+        "filtered_reads": 0,
+        "compute_seconds": 3.5
+    }
 ]

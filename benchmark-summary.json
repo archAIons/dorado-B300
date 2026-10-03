@@ -1,27 +1,28 @@
 {
-  "gpu": "NVIDIA B300 SXM6 AC, 580.95.05, 275040 MiB",
-  "dorado_version": "2.1.2+8b8fc5d+dirty",
-  "model": "dna_r10.4.1_e8.2_400bps_hac@v6.0.0",
-  "input_sha256": "08d559f25d17409ef72fb6ca685dd1410e90465dc1a23702bc68374d1f8a7091",
-  "dorado_sha256": "e7dd2d6f205d91fae3a1d95bced262b885fb5063234fb1f17a05d2d888ae7ff6",
-  "koi_sha256": "92dc1cc8ec0e3f9f773567175a844c2a6a9c3e572dc1ae71f9b41fa197dbe6fe",
-  "batch_size": 8192,
-  "workflow_seconds": 23.208,
-  "reads": 1003,
-  "bases": 16846352,
-  "sequence_quality_digest": "40b6d4c6b0b2e887f59c29e2cd6499654ed7e22c5a7bfd5985d1859c80ca3fc9",
-  "historical_h100_workflow_seconds": 55.67,
-  "processing_time_reduction_percent": 58.31147835458955,
-  "comparison_scope": "Single-file historical processing-workflow comparison; not an isolated GPU inference benchmark.",
-  "excluded_time": [
-    "upload",
-    "download",
-    "queueing",
-    "GPU allocation"
-  ],
-  "source_reports": [
-    "b300-port/kernel-performance-results/report.json: batch-8192",
-    "b300-port/performance4096-worker-results/report.json: historical_h100_compute_seconds"
-  ],
-  "deployed_hac_batch_size": 4096
+    "gpu": "NVIDIA B300 SXM6 AC, 580.95.05, 275040 MiB",
+    "dorado_version": "2.1.2+8b8fc5d+dirty",
+    "model": "dna_r10.4.1_e8.2_400bps_hac@v6.0.0",
+    "input_sha256": "08d559f25d17409ef72fb6ca685dd1410e90465dc1a23702bc68374d1f8a7091",
+    "dorado_sha256": "e7dd2d6f205d91fae3a1d95bced262b885fb5063234fb1f17a05d2d888ae7ff6",
+    "koi_sha256": "92dc1cc8ec0e3f9f773567175a844c2a6a9c3e572dc1ae71f9b41fa197dbe6fe",
+    "batch_size": 8192,
+    "workflow_seconds": 23.208,
+    "reads": 1003,
+    "bases": 16846352,
+    "sequence_quality_digest": "40b6d4c6b0b2e887f59c29e2cd6499654ed7e22c5a7bfd5985d1859c80ca3fc9",
+    "historical_h100_workflow_seconds": 55.67,
+    "processing_time_reduction_percent": 58.31147835458955,
+    "comparison_scope":
+            "Single-file historical processing-workflow comparison; not an isolated GPU inference benchmark.",
+    "excluded_time": [
+        "upload",
+        "download",
+        "queueing",
+        "GPU allocation"
+    ],
+    "source_reports": [
+        "b300-port/kernel-performance-results/report.json: batch-8192",
+        "b300-port/performance4096-worker-results/report.json: historical_h100_compute_seconds"
+    ],
+    "deployed_hac_batch_size": 4096
 }

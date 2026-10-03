@@ -15,7 +15,14 @@ account = ContextVar("account", default="")
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
-from run_options import RunOptions, KITS, DNA_MODS, RNA_MODS, BARCODE_KITS, validate_chemistry
+from run_options import (
+    RunOptions,
+    KITS,
+    DNA_MODS,
+    RNA_MODS,
+    BARCODE_KITS,
+    validate_chemistry,
+)
 
 ROOT = Path(os.environ.get("BASECALL_DATA", "./data")).resolve()
 ROOT.mkdir(parents=True, exist_ok=True)
@@ -35,27 +42,33 @@ def db():
 
 with db() as conn:
     conn.execute("BEGIN IMMEDIATE")
-    conn.execute("""CREATE TABLE IF NOT EXISTS jobs (
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS jobs (
       id TEXT PRIMARY KEY, run TEXT NOT NULL, filename TEXT NOT NULL,
       sha256 TEXT NOT NULL, size INTEGER NOT NULL, offset INTEGER NOT NULL DEFAULT 0,
       model TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'uploading',
       error TEXT, created REAL NOT NULL, attempt TEXT, heartbeat REAL,
-      UNIQUE(run, sha256, model))""")
+      UNIQUE(run, sha256, model))"""
+    )
     columns = {row[1] for row in conn.execute("PRAGMA table_info(jobs)")}
     for column in ("metrics", "remote_call"):
         if column not in columns:
             conn.execute(f"ALTER TABLE jobs ADD COLUMN {column} TEXT")
     if "gpu" not in columns:
-        conn.execute("""CREATE TABLE jobs_gpu (
+        conn.execute(
+            """CREATE TABLE jobs_gpu (
           id TEXT PRIMARY KEY, run TEXT NOT NULL, filename TEXT NOT NULL,
           sha256 TEXT NOT NULL, size INTEGER NOT NULL, offset INTEGER NOT NULL DEFAULT 0,
           model TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'uploading',
           error TEXT, created REAL NOT NULL, attempt TEXT, heartbeat REAL,
           metrics TEXT, remote_call TEXT, gpu TEXT NOT NULL DEFAULT 'H100',
-          UNIQUE(run, sha256, model, gpu))""")
-        conn.execute("""INSERT INTO jobs_gpu
+          UNIQUE(run, sha256, model, gpu))"""
+        )
+        conn.execute(
+            """INSERT INTO jobs_gpu
           SELECT id,run,filename,sha256,size,offset,model,state,error,created,attempt,heartbeat,
-                 metrics,remote_call,'H100' FROM jobs""")
+                 metrics,remote_call,'H100' FROM jobs"""
+        )
         conn.execute("DROP TABLE jobs")
         conn.execute("ALTER TABLE jobs_gpu RENAME TO jobs")
 
@@ -63,15 +76,20 @@ with db() as conn:
     conn.execute("BEGIN IMMEDIATE")
     columns = {row[1] for row in conn.execute("PRAGMA table_info(jobs)")}
     if "options" not in columns:
-        conn.execute("""CREATE TABLE jobs_options (
+        conn.execute(
+            """CREATE TABLE jobs_options (
           id TEXT PRIMARY KEY, run TEXT NOT NULL, filename TEXT NOT NULL,
           sha256 TEXT NOT NULL, size INTEGER NOT NULL, offset INTEGER NOT NULL DEFAULT 0,
           model TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'uploading',
           error TEXT, created REAL NOT NULL, attempt TEXT, heartbeat REAL,
           metrics TEXT, remote_call TEXT, gpu TEXT NOT NULL DEFAULT 'B300',
-          options TEXT NOT NULL, UNIQUE(run,sha256,model,gpu,options))""")
+          options TEXT NOT NULL, UNIQUE(run,sha256,model,gpu,options))"""
+        )
         defaults = json.dumps(RunOptions(qc=False).model_dump(), sort_keys=True)
-        conn.execute("INSERT INTO jobs_options SELECT id,run,filename,sha256,size,offset,model,state,error,created,attempt,heartbeat,metrics,remote_call,gpu,? FROM jobs", (defaults,))
+        conn.execute(
+            "INSERT INTO jobs_options SELECT id,run,filename,sha256,size,offset,model,state,error,created,attempt,heartbeat,metrics,remote_call,gpu,? FROM jobs",
+            (defaults,),
+        )
         conn.execute("DROP TABLE jobs")
         conn.execute("ALTER TABLE jobs_options RENAME TO jobs")
 
@@ -91,14 +109,24 @@ def gpu_options():
         ready = False
         pass
     return [
-        {"id": "B300", "name": "NVIDIA B300", "available": ready,
-         "models": models,
-         "detail": "Experimental · " + " / ".join(m.upper() for m in models) + " · Kit 14 DNA / RNA004 · experimental" if ready else
-                   "Awaiting compatible Dorado GPU libraries. Please try again later."},
+        {
+            "id": "B300",
+            "name": "NVIDIA B300",
+            "available": ready,
+            "models": models,
+            "detail": (
+                "Experimental · "
+                + " / ".join(m.upper() for m in models)
+                + " · Kit 14 DNA / RNA004 · experimental"
+                if ready
+                else "Awaiting compatible Dorado GPU libraries. Please try again later."
+            ),
+        },
     ]
 
 
 app = FastAPI(title="Archaions B300 Basecalling")
+
 
 async def resolve_account(request):
     token = request.cookies.get("archaions_session", "")
@@ -106,8 +134,12 @@ async def resolve_account(request):
         raise HTTPException(401, "Sign in to use basecalling.")
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(os.environ.get("BASECALL_ACCOUNT_URL", "http://127.0.0.1:8000/api/account/me"),
-                                        cookies={"archaions_session": token})
+            response = await client.get(
+                os.environ.get(
+                    "BASECALL_ACCOUNT_URL", "http://127.0.0.1:8000/api/account/me"
+                ),
+                cookies={"archaions_session": token},
+            )
         if response.status_code == 401:
             raise HTTPException(401, "Sign in to use basecalling.")
         response.raise_for_status()
@@ -118,12 +150,18 @@ async def resolve_account(request):
     except Exception:
         raise HTTPException(503, "Account service is temporarily unavailable.")
 
+
 @app.middleware("http")
 async def account_access(request, call_next):
     context = None
     try:
         if request.method not in {"GET", "HEAD", "OPTIONS"}:
-            if request.headers.get("origin") not in set(os.environ.get("BASECALL_ALLOWED_ORIGINS", "https://archaions.com,https://www.archaions.com").split(",")):
+            if request.headers.get("origin") not in set(
+                os.environ.get(
+                    "BASECALL_ALLOWED_ORIGINS",
+                    "https://archaions.com,https://www.archaions.com",
+                ).split(",")
+            ):
                 raise HTTPException(403, "Origin is not allowed")
         context = account.set(await resolve_account(request))
         response = await call_next(request)
@@ -140,9 +178,19 @@ async def account_access(request, call_next):
 def health():
     marker = ROOT / "dispatcher.heartbeat"
     online = marker.exists() and time.time() - marker.stat().st_mtime < 90
-    return {"ok": True, "worker_online": online, "gpu": "NVIDIA B300", "max_file_bytes": MAX_FILE,
-            "chunk_bytes": MAX_CHUNK, "quota_bytes": QUOTA, "gpus": gpu_options(), "kits": KITS, "dna_modifications": DNA_MODS,
-            "rna_modifications": RNA_MODS, "barcode_kits": sorted(BARCODE_KITS)}
+    return {
+        "ok": True,
+        "worker_online": online,
+        "gpu": "NVIDIA B300",
+        "max_file_bytes": MAX_FILE,
+        "chunk_bytes": MAX_CHUNK,
+        "quota_bytes": QUOTA,
+        "gpus": gpu_options(),
+        "kits": KITS,
+        "dna_modifications": DNA_MODS,
+        "rna_modifications": RNA_MODS,
+        "barcode_kits": sorted(BARCODE_KITS),
+    }
 
 
 class Upload(BaseModel):
@@ -163,8 +211,21 @@ def get_job(conn, job_id):
 
 
 def public(row):
-    result = {k: row[k] for k in ("id", "run", "filename", "size", "offset", "model", "gpu", "state", "error")}
-    result["run"] = result["run"][len(account.get()):]
+    result = {
+        k: row[k]
+        for k in (
+            "id",
+            "run",
+            "filename",
+            "size",
+            "offset",
+            "model",
+            "gpu",
+            "state",
+            "error",
+        )
+    }
+    result["run"] = result["run"][len(account.get()) :]
     result["options"] = json.loads(row["options"])
     result["metrics"] = json.loads(row["metrics"]) if row["metrics"] else None
     return result
@@ -183,15 +244,20 @@ def initiate(body: Upload):
         raise HTTPException(409, selected["name"] + ": " + selected["detail"])
     if body.model not in selected.get("models", ["fast", "hac", "sup"]):
         supported = " / ".join(m.upper() for m in selected.get("models", []))
-        raise HTTPException(409, f"B300 currently supports validated models: {supported}. Choose HAC or SUP.")
+        raise HTTPException(
+            409,
+            f"B300 currently supports validated models: {supported}. Choose HAC or SUP.",
+        )
     if not body.filename.lower().endswith(".pod5"):
         raise HTTPException(400, "Expected a POD5 file")
     if body.size > MAX_FILE:
         raise HTTPException(413, "This page accepts files up to 2 GiB each")
     with db() as conn:
         conn.execute("BEGIN IMMEDIATE")
-        existing = conn.execute("SELECT * FROM jobs WHERE run=? AND sha256=? AND model=? AND gpu=? AND options=?",
-                                (body.run, body.sha256, body.model, body.gpu, options)).fetchone()
+        existing = conn.execute(
+            "SELECT * FROM jobs WHERE run=? AND sha256=? AND model=? AND gpu=? AND options=?",
+            (body.run, body.sha256, body.model, body.gpu, options),
+        ).fetchone()
         if existing:
             if existing["size"] != body.size:
                 raise HTTPException(409, "Size differs for this checksum")
@@ -202,8 +268,20 @@ def initiate(body: Upload):
         job_id = uuid.uuid4().hex
         folder = ROOT / job_id
         folder.mkdir(mode=0o700)
-        conn.execute("INSERT INTO jobs(id,run,filename,sha256,size,model,gpu,created,options) VALUES(?,?,?,?,?,?,?,?,?)",
-                     (job_id, body.run, body.filename, body.sha256, body.size, body.model, body.gpu, time.time(), options))
+        conn.execute(
+            "INSERT INTO jobs(id,run,filename,sha256,size,model,gpu,created,options) VALUES(?,?,?,?,?,?,?,?,?)",
+            (
+                job_id,
+                body.run,
+                body.filename,
+                body.sha256,
+                body.size,
+                body.model,
+                body.gpu,
+                time.time(),
+                options,
+            ),
+        )
         return public(get_job(conn, job_id))
 
 
@@ -211,8 +289,20 @@ def initiate(body: Upload):
 def jobs(run: str = ""):
     with db() as conn:
         if not run:
-            return [public(r) for r in conn.execute("SELECT * FROM jobs WHERE substr(run,1,65)=? ORDER BY created DESC LIMIT 200", (account.get(),))]
-        return [public(r) for r in conn.execute("SELECT * FROM jobs WHERE run=? ORDER BY created", (account.get() + run,))]
+            return [
+                public(r)
+                for r in conn.execute(
+                    "SELECT * FROM jobs WHERE substr(run,1,65)=? ORDER BY created DESC LIMIT 200",
+                    (account.get(),),
+                )
+            ]
+        return [
+            public(r)
+            for r in conn.execute(
+                "SELECT * FROM jobs WHERE run=? ORDER BY created",
+                (account.get() + run,),
+            )
+        ]
 
 
 @app.get("/jobs/{job_id}")
@@ -244,7 +334,9 @@ async def chunk(job_id: str, offset: int, request: Request):
             stream.truncate()
             stream.flush()
             os.fsync(stream.fileno())
-        conn.execute("UPDATE jobs SET offset=? WHERE id=?", (offset + len(data), job_id))
+        conn.execute(
+            "UPDATE jobs SET offset=? WHERE id=?", (offset + len(data), job_id)
+        )
         return public(get_job(conn, job_id))
 
 
@@ -254,6 +346,7 @@ class UnsupportedB300Chemistry(ValueError):
 
 def validate_pod5(path, gpu="B300", options=None):
     import pod5
+
     options = options or RunOptions()
     with pod5.Reader(path) as reader:
         if reader.num_reads == 0:
@@ -286,14 +379,24 @@ def complete(job_id: str):
         with path.open("rb") as stream:
             checksum = hashlib.file_digest(stream, "sha256").hexdigest()
         if checksum != row["sha256"]:
-            conn.execute("UPDATE jobs SET offset=0,error='Checksum mismatch; resend file' WHERE id=?", (job_id,))
+            conn.execute(
+                "UPDATE jobs SET offset=0,error='Checksum mismatch; resend file' WHERE id=?",
+                (job_id,),
+            )
             return public(get_job(conn, job_id))
         try:
-            validate_pod5(path, row["gpu"], RunOptions.model_validate_json(row["options"]))
+            validate_pod5(
+                path, row["gpu"], RunOptions.model_validate_json(row["options"])
+            )
         except Exception as exc:
-            detail = str(exc) if isinstance(exc, UnsupportedB300Chemistry) else f"POD5 validation failed: {type(exc).__name__}"
-            conn.execute("UPDATE jobs SET state='failed',error=? WHERE id=?",
-                         (detail, job_id))
+            detail = (
+                str(exc)
+                if isinstance(exc, UnsupportedB300Chemistry)
+                else f"POD5 validation failed: {type(exc).__name__}"
+            )
+            conn.execute(
+                "UPDATE jobs SET state='failed',error=? WHERE id=?", (detail, job_id)
+            )
             return public(get_job(conn, job_id))
         path.replace(folder / "input.pod5")
         conn.execute("UPDATE jobs SET state='queued',error=NULL WHERE id=?", (job_id,))
@@ -302,7 +405,13 @@ def complete(job_id: str):
 
 @app.get("/jobs/{job_id}/download/{kind}")
 def download(job_id: str, kind: str):
-    if kind not in ("bam", "fastq.gz", "provenance.json", "qc.json", "demultiplexed.zip"):
+    if kind not in (
+        "bam",
+        "fastq.gz",
+        "provenance.json",
+        "qc.json",
+        "demultiplexed.zip",
+    ):
         raise HTTPException(404)
     with db() as conn:
         row = get_job(conn, job_id)
